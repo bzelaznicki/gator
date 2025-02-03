@@ -30,6 +30,7 @@ func NewCommands() *Commands {
 	// Register command handlers
 	commands.Register("login", HandlerLogin)
 	commands.Register("register", HandlerRegister)
+	commands.Register("reset", HandlerReset)
 
 	return commands
 }
