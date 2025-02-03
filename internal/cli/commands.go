@@ -20,27 +20,16 @@ type Commands struct {
 }
 
 func NewCommands() *Commands {
-	return &Commands{
+	// Initialize commands map
+	commands := &Commands{
 		cmds: make(map[string]func(*state, Command) error),
 	}
-}
 
-func NewState(cfg *config.Config) *state {
-	return &state{Cfg: cfg}
-}
+	// Register command handlers
+	commands.Register("login", HandlerLogin)
+	//commands.Register("register", HandlerRegister)
 
-func HandlerLogin(s *state, cmd Command) error {
-	if len(cmd.Arguments) == 0 {
-		return fmt.Errorf("login command requires a username. Usage: login <username>")
-	}
-
-	err := s.Cfg.SetUser(cmd.Arguments[0])
-	if err != nil {
-		return err
-	}
-
-	fmt.Printf("Successfully logged in as %s\n", s.Cfg.CurrentUserName)
-	return nil
+	return commands
 }
 
 func (c *Commands) Register(name string, f func(*state, Command) error) error {
@@ -51,6 +40,10 @@ func (c *Commands) Register(name string, f func(*state, Command) error) error {
 
 	c.cmds[name] = f
 	return nil
+}
+
+func NewState(cfg *config.Config) *state {
+	return &state{Cfg: cfg}
 }
 
 func (c *Commands) Run(s *state, cmd Command) error {
