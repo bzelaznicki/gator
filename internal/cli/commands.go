@@ -5,10 +5,12 @@ import (
 	"strings"
 
 	"github.com/bzelaznicki/gator/internal/config"
+	"github.com/bzelaznicki/gator/internal/database"
 )
 
 type state struct {
-	Cfg *config.Config
+	cfg *config.Config
+	db  *database.Queries
 }
 
 type Command struct {
@@ -27,9 +29,16 @@ func NewCommands() *Commands {
 
 	// Register command handlers
 	commands.Register("login", HandlerLogin)
-	//commands.Register("register", HandlerRegister)
+	commands.Register("register", HandlerRegister)
 
 	return commands
+}
+
+func NewState(db *database.Queries, cfg *config.Config) *state {
+	return &state{
+		db:  db,
+		cfg: cfg,
+	}
 }
 
 func (c *Commands) Register(name string, f func(*state, Command) error) error {
@@ -40,10 +49,6 @@ func (c *Commands) Register(name string, f func(*state, Command) error) error {
 
 	c.cmds[name] = f
 	return nil
-}
-
-func NewState(cfg *config.Config) *state {
-	return &state{Cfg: cfg}
 }
 
 func (c *Commands) Run(s *state, cmd Command) error {

@@ -1,11 +1,15 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"os"
 
 	"github.com/bzelaznicki/gator/internal/cli"
 	"github.com/bzelaznicki/gator/internal/config"
+	"github.com/bzelaznicki/gator/internal/database"
+
+	_ "github.com/lib/pq"
 )
 
 func main() {
@@ -15,19 +19,17 @@ func main() {
 		fmt.Fprintf(os.Stderr, "failed to read config: %v\n", err)
 		os.Exit(1)
 	}
+	db, err := sql.Open("postgres", cfg.DbURL)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
 
-	// Initialize state
-	state := cli.NewState(&cfg)
+	dbQueries := database.New(db)
+	state := cli.NewState(dbQueries, &cfg)
 
 	// Create commands instance using `newCommands`
 	cmds := cli.NewCommands() // Adjust capitalization depending on visibility.
-
-	// Register the login handler
-	err = cmds.Register("login", cli.HandlerLogin)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to register the login command: %v\n", err)
-		os.Exit(1)
-	}
 
 	// Ensure enough arguments are provided
 	if len(os.Args) < 2 {

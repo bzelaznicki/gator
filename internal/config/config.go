@@ -13,17 +13,21 @@ type Config struct {
 
 func Read() (Config, error) {
 	var config Config
-
 	filePath, err := getConfigFilePath()
+
 	if err != nil {
+
 		return Config{}, err
 	}
 	fileData, err := os.ReadFile(filePath)
+
 	if err != nil {
 		return Config{}, err
 	}
 	err = json.Unmarshal(fileData, &config)
+
 	if err != nil {
+
 		return Config{}, err
 	}
 
