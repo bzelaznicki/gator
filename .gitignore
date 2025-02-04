@@ -1,0 +1,36 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+gator
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# Go workspace file
+go.work
+
+# Go modules
+go.mod
+go.sum
+
+# Executable files
+*.exe
+*.out
+*.app
+
+# Vendor directory
+/vendor/
+
+# Test binary, build artifacts
+*.test
+*.log
+
+# IDE/editor specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
