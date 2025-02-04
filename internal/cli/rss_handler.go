@@ -64,6 +64,23 @@ func HandlerAddFeed(s *state, cmd Command) error {
 	return nil
 }
 
+func HandlerFeeds(s *state, cmd Command) error {
+	feeds, err := s.db.GetFeeds(context.Background())
+	if err != nil {
+		return fmt.Errorf("failed to get feeds: %v", err)
+	}
+
+	if len(feeds) == 0 {
+		return fmt.Errorf("no feeds found. add one by using addfeed <name> <url>")
+	}
+
+	for _, feed := range feeds {
+		fmt.Printf("Name: %s\nURL: %s\nCreated by: %s\n\n", feed.Name, feed.Url, feed.CreatedBy)
+	}
+
+	return nil
+}
+
 /*
 func HandlerRss(s *state, cmd Command) error {
 	if len(cmd.Arguments) == 0 {
