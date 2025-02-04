@@ -32,6 +32,7 @@ func NewCommands() *Commands {
 	commands.Register("register", HandlerRegister)
 	commands.Register("reset", HandlerReset)
 	commands.Register("users", HandlerUsers)
+	commands.Register("agg", HandlerAgg)
 
 	return commands
 }
