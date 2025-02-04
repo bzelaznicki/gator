@@ -11,9 +11,17 @@ To install the file, use:
 go install https://github.com/bzelaznicki/gator
 ```
 
-Schemas can be installed using Goose and are found in the /sql/schema/ folder.
+## Config
 
-The application also requires a .gatorconfig.json file in your home directory.
+Create a `.gatorconfig.json` file in your home directory with the following structure:
+
+```json
+{
+  "db_url": "postgres://username:@localhost:5432/database?sslmode=disable"
+}
+```
+
+Replace the values with your database connection string.
 
 ## Commands
 * `register <username>`: Lets you register as an user.
