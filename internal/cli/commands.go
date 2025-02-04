@@ -33,10 +33,10 @@ func NewCommands() *Commands {
 	commands.Register("reset", HandlerReset)
 	commands.Register("users", HandlerUsers)
 	commands.Register("agg", HandlerAgg)
-	commands.Register("addfeed", HandlerAddFeed)
+	commands.Register("addfeed", middlewareLoggedIn(HandlerAddFeed))
 	commands.Register("feeds", HandlerFeeds)
-	commands.Register("follow", HandlerFollow)
-	commands.Register("following", HandlerFollowing)
+	commands.Register("follow", middlewareLoggedIn(HandlerFollow))
+	commands.Register("following", middlewareLoggedIn(HandlerFollowing))
 
 	return commands
 }

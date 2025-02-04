@@ -30,7 +30,7 @@ func HandlerAgg(s *state, cmd Command) error {
 	return nil
 }
 
-func HandlerAddFeed(s *state, cmd Command) error {
+func HandlerAddFeed(s *state, cmd Command, user database.User) error {
 
 	if len(cmd.Arguments) < 2 {
 		return fmt.Errorf("addfeed command requires a title and an URL. Usage: rss <title> <url>")
@@ -41,10 +41,7 @@ func HandlerAddFeed(s *state, cmd Command) error {
 	if err != nil {
 		return err
 	}
-	user, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
-	if err != nil {
-		return fmt.Errorf("user not found: %v", err)
-	}
+
 	params := database.InsertFeedParams{
 		ID:        uuid.New(),
 		CreatedAt: time.Now(),
@@ -92,7 +89,7 @@ func HandlerFeeds(s *state, cmd Command) error {
 	return nil
 }
 
-func HandlerFollow(s *state, cmd Command) error {
+func HandlerFollow(s *state, cmd Command, user database.User) error {
 	if len(cmd.Arguments) == 0 {
 		return fmt.Errorf("follow requires a feed URL. Usage: follow <url>")
 	}
@@ -108,16 +105,11 @@ func HandlerFollow(s *state, cmd Command) error {
 		return fmt.Errorf("failed to get feed information: %v", err)
 	}
 
-	userInfo, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
-	if err != nil {
-		return fmt.Errorf("failed to get user information: %v", err)
-	}
-
 	newFeedFollow := database.CreateFeedFollowParams{
 		ID:        uuid.New(),
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
-		UserID:    userInfo.ID,
+		UserID:    user.ID,
 		FeedID:    feedInfo.ID,
 	}
 
@@ -131,20 +123,17 @@ func HandlerFollow(s *state, cmd Command) error {
 	return nil
 }
 
-func HandlerFollowing(s *state, cmd Command) error {
-	userInfo, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
-	if err != nil {
-		return fmt.Errorf("failed to get user information: %v", err)
-	}
-	followedFeeds, err := s.db.GetFeedFollowsForUser(context.Background(), userInfo.ID)
+func HandlerFollowing(s *state, cmd Command, user database.User) error {
+
+	followedFeeds, err := s.db.GetFeedFollowsForUser(context.Background(), user.ID)
 	if err != nil {
 		return fmt.Errorf("failed to get user feeds: %v", err)
 	}
 	if len(followedFeeds) == 0 {
-		return fmt.Errorf("%s is not following any feeds", userInfo.Name)
+		return fmt.Errorf("%s is not following any feeds", user.Name)
 	}
 
-	fmt.Printf("%s is following the following feeds:\n", userInfo.Name)
+	fmt.Printf("%s is following the following feeds:\n", user.Name)
 	for _, feed := range followedFeeds {
 		fmt.Printf("* %s\n", feed.FeedName)
 	}
