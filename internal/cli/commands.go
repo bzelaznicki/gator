@@ -33,6 +33,7 @@ func NewCommands() *Commands {
 	commands.Register("reset", HandlerReset)
 	commands.Register("users", HandlerUsers)
 	commands.Register("agg", HandlerAgg)
+	commands.Register("addfeed", HandlerAddFeed)
 
 	return commands
 }
