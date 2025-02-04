@@ -8,6 +8,7 @@ import (
 
 	"github.com/bzelaznicki/gator/internal/database"
 	"github.com/bzelaznicki/gator/internal/rss"
+	"github.com/google/uuid"
 )
 
 func HandlerAgg(s *state, cmd Command) error {
@@ -31,7 +32,6 @@ func HandlerAgg(s *state, cmd Command) error {
 		}
 	}
 
-	return nil
 }
 
 func scrapeFeeds(s *state) error {
@@ -59,13 +59,45 @@ func scrapeFeeds(s *state) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("On %s at %v found:\n\n", feedToScrape.Name, time.Now())
+	fmt.Printf("Querying %s at %v\n\n", feedToScrape.Name, time.Now())
 
 	for i := range feed.Channel.Item {
-		fmt.Printf("Title: %s\n", feed.Channel.Item[i].Title)
+
+		layout := "Mon, 02 Jan 2006 15:04:05 -0700"
+		pubDate, err := time.Parse(layout, feed.Channel.Item[i].PubDate)
+		if err != nil {
+			return fmt.Errorf("failed to parse pubDate: %s", err)
+		}
+
+		postParams := database.CreatePostParams{
+			ID:        uuid.New(),
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+			Title: sql.NullString{
+				String: feed.Channel.Item[i].Title,
+				Valid:  true,
+			},
+			Url: feed.Channel.Item[i].Link,
+			Description: sql.NullString{
+				String: feed.Channel.Item[i].Description,
+				Valid:  true,
+			},
+			PublishedAt: sql.NullTime{
+				Time:  pubDate,
+				Valid: true,
+			},
+			FeedID: uuid.NullUUID{
+				UUID:  feedToScrape.ID,
+				Valid: true,
+			},
+		}
+		err = s.db.CreatePost(context.Background(), postParams)
+		if err != nil {
+			return fmt.Errorf("failed to add post: %v", err)
+		}
+
 	}
-	fmt.Printf("Taken from: %s", feedToScrape.Url)
-	fmt.Printf("\n\n")
+	fmt.Printf("\n")
 
 	return nil
 }
