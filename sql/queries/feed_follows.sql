@@ -27,3 +27,12 @@ FROM feed_follows ff
 JOIN feeds f ON f.id = ff.feed_id
 JOIN users u ON u.id = ff.user_id
 WHERE u.id = $1;
+
+-- name: GetSingleFeedForUser :one
+SELECT ff.* FROM feed_follows ff
+JOIN feeds f on f.id = ff.feed_id
+WHERE ff.user_id = $1 AND f.url = $2;
+
+-- name: DeleteFeed :one
+DELETE FROM feed_follows
+WHERE id = $1 RETURNING *;

@@ -2,6 +2,8 @@ package cli
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"net/url"
 	"time"
@@ -130,13 +132,46 @@ func HandlerFollowing(s *state, cmd Command, user database.User) error {
 		return fmt.Errorf("failed to get user feeds: %v", err)
 	}
 	if len(followedFeeds) == 0 {
-		return fmt.Errorf("%s is not following any feeds", user.Name)
+		fmt.Printf("%s is not following any feeds\n", user.Name)
+		return nil
 	}
 
 	fmt.Printf("%s is following the following feeds:\n", user.Name)
 	for _, feed := range followedFeeds {
 		fmt.Printf("* %s\n", feed.FeedName)
 	}
+	return nil
+}
+
+func HandlerUnfollow(s *state, cmd Command, user database.User) error {
+
+	feedUrl := cmd.Arguments[0]
+
+	query := database.GetSingleFeedForUserParams{
+		UserID: user.ID,
+		Url:    feedUrl,
+	}
+
+	// Try to fetch the feed subscription for the user
+	feedSub, err := s.db.GetSingleFeedForUser(context.Background(), query)
+	if err != nil {
+		// Check if the error is because no rows were found, and gracefully handle it
+		if errors.Is(err, sql.ErrNoRows) {
+			fmt.Printf("No feed found for URL %s to unfollow.\n", feedUrl)
+			return nil // Graceful exit, no action needed
+		}
+		// If other unexpected errors occur, propagate them up
+		return fmt.Errorf("failed to get single feed: %v", err)
+	}
+
+	// Proceed to delete the feed if it exists
+	_, err = s.db.DeleteFeed(context.Background(), feedSub.ID)
+	if err != nil {
+		return fmt.Errorf("error deleting feed subscription: %v", err)
+	}
+
+	// Success message
+	fmt.Printf("Feed for %s successfully unfollowed.\n", user.Name)
 	return nil
 }
 

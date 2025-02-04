@@ -37,6 +37,7 @@ func NewCommands() *Commands {
 	commands.Register("feeds", HandlerFeeds)
 	commands.Register("follow", middlewareLoggedIn(HandlerFollow))
 	commands.Register("following", middlewareLoggedIn(HandlerFollowing))
+	commands.Register("unfollow", middlewareLoggedIn(HandlerUnfollow))
 
 	return commands
 }
