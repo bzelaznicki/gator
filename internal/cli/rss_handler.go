@@ -58,7 +58,18 @@ func HandlerAddFeed(s *state, cmd Command) error {
 	if err != nil {
 		return fmt.Errorf("error creating feed: %v", err)
 	}
+	newFeedFollow := database.CreateFeedFollowParams{
+		ID:        uuid.New(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		UserID:    user.ID,
+		FeedID:    feedInfo.ID,
+	}
 
+	_, err = s.db.CreateFeedFollow(context.Background(), newFeedFollow)
+	if err != nil {
+		return fmt.Errorf("failed to create feed follow: %v", err)
+	}
 	fmt.Printf("Feed created successfully:\nName: %s\n URL: %s\n", feedInfo.Name, feedInfo.Url)
 
 	return nil
@@ -78,6 +89,65 @@ func HandlerFeeds(s *state, cmd Command) error {
 		fmt.Printf("Name: %s\nURL: %s\nCreated by: %s\n\n", feed.Name, feed.Url, feed.CreatedBy)
 	}
 
+	return nil
+}
+
+func HandlerFollow(s *state, cmd Command) error {
+	if len(cmd.Arguments) == 0 {
+		return fmt.Errorf("follow requires a feed URL. Usage: follow <url>")
+	}
+
+	feedUrl := cmd.Arguments[0]
+	_, err := url.Parse(feedUrl)
+	if err != nil {
+		return err
+	}
+
+	feedInfo, err := s.db.GetFeedByUrl(context.Background(), feedUrl)
+	if err != nil {
+		return fmt.Errorf("failed to get feed information: %v", err)
+	}
+
+	userInfo, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
+	if err != nil {
+		return fmt.Errorf("failed to get user information: %v", err)
+	}
+
+	newFeedFollow := database.CreateFeedFollowParams{
+		ID:        uuid.New(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		UserID:    userInfo.ID,
+		FeedID:    feedInfo.ID,
+	}
+
+	createdFeedFollow, err := s.db.CreateFeedFollow(context.Background(), newFeedFollow)
+	if err != nil {
+		return fmt.Errorf("failed to create feed follow: %v", err)
+	}
+
+	fmt.Printf("Feed created successfully!\nUser: %s\nFeed name: %s\nCreated at: %v\n Updated at: %v\n", createdFeedFollow.UserName, createdFeedFollow.FeedName, createdFeedFollow.CreatedAt, createdFeedFollow.UpdatedAt)
+
+	return nil
+}
+
+func HandlerFollowing(s *state, cmd Command) error {
+	userInfo, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
+	if err != nil {
+		return fmt.Errorf("failed to get user information: %v", err)
+	}
+	followedFeeds, err := s.db.GetFeedFollowsForUser(context.Background(), userInfo.ID)
+	if err != nil {
+		return fmt.Errorf("failed to get user feeds: %v", err)
+	}
+	if len(followedFeeds) == 0 {
+		return fmt.Errorf("%s is not following any feeds", userInfo.Name)
+	}
+
+	fmt.Printf("%s is following the following feeds:\n", userInfo.Name)
+	for _, feed := range followedFeeds {
+		fmt.Printf("* %s\n", feed.FeedName)
+	}
 	return nil
 }
 
