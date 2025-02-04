@@ -9,28 +9,8 @@ import (
 	"time"
 
 	"github.com/bzelaznicki/gator/internal/database"
-	"github.com/bzelaznicki/gator/internal/rss"
 	"github.com/google/uuid"
 )
-
-func HandlerAgg(s *state, cmd Command) error {
-
-	feedUrl := "https://www.wagslane.dev/index.xml"
-	_, err := url.Parse(feedUrl)
-	if err != nil {
-		return err
-	}
-
-	feed, err := rss.FetchFeed(context.Background(), feedUrl)
-
-	if err != nil {
-		return err
-	}
-
-	fmt.Printf("%v\n", feed)
-
-	return nil
-}
 
 func HandlerAddFeed(s *state, cmd Command, user database.User) error {
 
@@ -174,27 +154,3 @@ func HandlerUnfollow(s *state, cmd Command, user database.User) error {
 	fmt.Printf("Feed for %s successfully unfollowed.\n", user.Name)
 	return nil
 }
-
-/*
-func HandlerRss(s *state, cmd Command) error {
-	if len(cmd.Arguments) == 0 {
-		return fmt.Errorf("rss command requires an URL. Usage: rss <url>")
-	}
-
-	feedUrl := cmd.Arguments[0]
-	_, err := url.Parse(feedUrl)
-	if err != nil {
-		return err
-	}
-
-	feed, err := rss.FetchFeed(context.Background(), feedUrl)
-
-	if err != nil {
-		return err
-	}
-
-	fmt.Printf("%v", feed)
-
-	return nil
-}
-*/
